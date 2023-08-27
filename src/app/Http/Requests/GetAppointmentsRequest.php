@@ -26,7 +26,7 @@ class GetAppointmentsRequest extends FormRequest
             'end_date' => [
                 'sometimes',
                 'after_or_equal:today',
-                'date_format:Y-m-d H:i:s',
+                'date_format:Y-m-d',
             ],
         ];
     }

@@ -29,14 +29,14 @@ class CreateAppointmentRequest extends FormRequest
             'start_date' => [
                 'required',
                 'after_or_equal:today',
-                'before:end_date',
-                'date_format:Y-m-d H:i:s'
+                'before_or_equal:end_date',
+                'date_format:Y-m-d'
             ],
             'end_date' => [
                 'required',
                 'after_or_equal:today',
-                'after:start_date',
-                'date_format:Y-m-d H:i:s',
+                'after_or_equal:start_date',
+                'date_format:Y-m-d',
                 new NoOverlappingAppointments(
                     $this->input('start_date'),
                     $this->input('end_date'),

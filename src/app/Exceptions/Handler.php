@@ -4,8 +4,7 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -35,16 +34,23 @@ class Handler extends ExceptionHandler
     public function render($request, Exception|Throwable $exception)
     {
         if ($request->wantsJson()) {
-            return $this->handleApiException($exception);
+            return $this->handleApiException($request, $exception);
         }
 
         return parent::render($request, $exception);
     }
 
-    protected function handleApiException($exception): JsonResponse {
+    protected function handleApiException($request, $exception) {
+
+        //dd($exception);
+
         $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR;
         if (method_exists($exception, 'getStatusCode')) {
             $statusCode = $exception->getStatusCode();
+        }
+
+        if ($exception instanceof ValidationException) {
+            $statusCode = Response::HTTP_UNPROCESSABLE_ENTITY;
         }
 
         return response()->json(

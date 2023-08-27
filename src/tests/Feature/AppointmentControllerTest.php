@@ -26,12 +26,17 @@ class AppointmentControllerTest  extends TestCase
      */
     public function testIndex(array $data, int $status, int $count): void
     {
-        $response = $this->get('/api/v1/appointments');
+        $url = '/api/v1/appointments';
+        if (isset($data['end_date'])) {
+            $url .= '?end_date=' .  $data['end_date'];
+        }
+
+        $response = $this->get($url);
         $response->assertStatus($status);
 
         if ($status === Response::HTTP_OK) {
             $this->assertCount(
-                5, $response->json()['data']
+                $count, $response->json()['data']
             );
         }
     }
@@ -46,14 +51,23 @@ class AppointmentControllerTest  extends TestCase
             ],
             'today' => [
                 'data' => [
-                    'end_date' => Carbon::now('Europe/Berlin')
-                        ->setTime(23, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s')
+                    'end_date' => Carbon::now()
+                        ->format('Y-m-d')
                 ],
                 'status' => Response::HTTP_OK,
                 'count' => 1,
-            ]
+            ],
+            //'past' => [
+            //    'data' => [
+            //        'end_date' => Carbon::now()
+            //            ->subDay()
+            //            ->setTime(8, 0, 0)
+            //            ->setTimezone('UTC')
+            //            ->format('Y-m-d')
+            //    ],
+            //    'status' => Response::HTTP_UNPROCESSABLE_ENTITY,
+            //    'count' => 1,
+            //],
         ];
     }
 
@@ -65,14 +79,10 @@ class AppointmentControllerTest  extends TestCase
                 'data' => [
                     'title' => 'Test for Elbgoods',
                     'description' => 'Test for Elbgoods.',
-                    'start_date' => Carbon::now('Europe/Berlin')
-                        ->setTime(8, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
-                    'end_date' => Carbon::now('Europe/Berlin')
-                        ->setTime(18, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
+                    'start_date' => Carbon::now()
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
+                        ->format('Y-m-d'),
                     'status' => 'Booked',
                 ],
                 'status' => Response::HTTP_UNPROCESSABLE_ENTITY
@@ -81,16 +91,12 @@ class AppointmentControllerTest  extends TestCase
                 'data' => [
                     'title' => 'Test for Elbgoods',
                     'description' => 'Test for Elbgoods.',
-                    'start_date' => Carbon::now('Europe/Berlin')
+                    'start_date' => Carbon::now()
                         ->subDay()
-                        ->setTime(8, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
-                    'end_date' => Carbon::now('Europe/Berlin')
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
                         ->addDay()
-                        ->setTime(18, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
+                        ->format('Y-m-d'),
                     'status' => 'Booked',
                 ],
                 'status' => Response::HTTP_UNPROCESSABLE_ENTITY
@@ -99,15 +105,11 @@ class AppointmentControllerTest  extends TestCase
                 'data' => [
                     'title' => 'Test for Elbgoods',
                     'description' => 'Test for Elbgoods.',
-                    'start_date' => Carbon::now('Europe/Berlin')
+                    'start_date' => Carbon::now()
                         ->subDay()
-                        ->setTime(8, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
-                    'end_date' => Carbon::now('Europe/Berlin')
-                        ->setTime(18, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
+                        ->format('Y-m-d'),
                     'status' => 'Booked',
                 ],
                 'status' => Response::HTTP_UNPROCESSABLE_ENTITY
@@ -116,15 +118,11 @@ class AppointmentControllerTest  extends TestCase
                 'data' => [
                     'title' => 'Test for Elbgoods',
                     'description' => 'Test for Elbgoods.',
-                    'start_date' => Carbon::now('Europe/Berlin')
-                        ->setTime(8, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
-                    'end_date' => Carbon::now('Europe/Berlin')
+                    'start_date' => Carbon::now()
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
                         ->addDay()
-                        ->setTime(18, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
+                        ->format('Y-m-d'),
                     'status' => 'Booked',
                 ],
                 'status' => Response::HTTP_UNPROCESSABLE_ENTITY
@@ -133,16 +131,12 @@ class AppointmentControllerTest  extends TestCase
                 'data' => [
                     'title' => 'Test for Elbgoods',
                     'description' => 'Test for Elbgoods.',
-                    'start_date' => Carbon::now('Europe/Berlin')
+                    'start_date' => Carbon::now()
                         ->addDay()
-                        ->setTime(8, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
-                    'end_date' => Carbon::now('Europe/Berlin')
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
                         ->addDay()
-                        ->setTime(18, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
+                        ->format('Y-m-d'),
                     'status' => 'Tentative',
                 ],
                 'status' => Response::HTTP_UNPROCESSABLE_ENTITY
@@ -151,14 +145,11 @@ class AppointmentControllerTest  extends TestCase
                 'data' => [
                     'title' => 'Test for Elbgoods',
                     'description' => 'Test for Elbgoods.',
-                    'start_date' => Carbon::now('Europe/Berlin')
-                        ->setTime(18, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
-                    'end_date' => Carbon::now('Europe/Berlin')
-                        ->setTime(8, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
+                    'start_date' => Carbon::now()
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
+                        ->subDay()
+                        ->format('Y-m-d'),
                     'status' => 'Tentative',
                 ],
                 'status' => Response::HTTP_UNPROCESSABLE_ENTITY
@@ -167,16 +158,12 @@ class AppointmentControllerTest  extends TestCase
                 'data' => [
                     'title' => 'Test for Elbgoods',
                     'description' => 'Test for Elbgoods.',
-                    'start_date' => Carbon::now('Europe/Berlin')
+                    'start_date' => Carbon::now()
                         ->subDay()
-                        ->setTime(8, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
-                    'end_date' => Carbon::now('Europe/Berlin')
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
                         ->subDay()
-                        ->setTime(18, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
+                        ->format('Y-m-d'),
                     'status' => 'Tentative',
                 ],
                 'status' => Response::HTTP_UNPROCESSABLE_ENTITY
@@ -186,19 +173,15 @@ class AppointmentControllerTest  extends TestCase
                 'data' => [
                     'title' => 'Test for Elbgoods',
                     'description' => 'Test for Elbgoods.',
-                    'start_date' => Carbon::now('Europe/Berlin')
+                    'start_date' => Carbon::now()
                         ->addDays(5)
-                        ->setTime(8, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
-                    'end_date' => Carbon::now('Europe/Berlin')
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
                         ->addDays(5)
-                        ->setTime(18, 0, 0)
-                        ->setTimezone('UTC')
-                        ->format('Y-m-d H:i:s'),
+                        ->format('Y-m-d'),
                     'status' => 'Requested',
                 ],
-                'status' => Response::HTTP_OK
+                'status' => Response::HTTP_CREATED
             ],
         ];
     }

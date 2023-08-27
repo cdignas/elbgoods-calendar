@@ -24,8 +24,8 @@ class UpdateAppointmentRequest extends FormRequest
         return [
             'title'         => 'sometimes|string|max:255',
             'description'   => 'sometimes|nullable|string',
-            'start_date'    => 'sometimes|before_or_equal:end_date|date_format:Y-m-d H:i:s',
-            'end_date'      => 'sometimes|after_or_equal:start_date|date_format:Y-m-d H:i:s',
+            'start_date'    => 'sometimes|before_or_equal:end_date|date_format:Y-m-d',
+            'end_date'      => 'sometimes|after_or_equal:start_date|date_format:Y-m-d',
             'status'        => 'sometimes|in:Requested,Tentative,Booked'
         ];
     }

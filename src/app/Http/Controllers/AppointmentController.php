@@ -19,7 +19,8 @@ class AppointmentController extends \Illuminate\Routing\Controller
         $this->appointmentService = $appointmentService;
     }
 
-    public function index(GetAppointmentsRequest $request): AppointmentCollection {
+    public function index(GetAppointmentsRequest $request): AppointmentCollection
+    {
         return new AppointmentCollection(
             $this->appointmentService->getAll($request->validated())
         );
@@ -41,11 +42,12 @@ class AppointmentController extends \Illuminate\Routing\Controller
     /**
      * @throws AppointmentNotFoundException
      */
-    public function update(int $id, UpdateAppointmentRequest $request)
+    public function update(int $id, UpdateAppointmentRequest $request): AppointmentResource
     {
-        $this->appointmentService->update($id, $request->validated());
+        return new AppointmentResource(
+            $this->appointmentService->update($id, $request->validated())
+        );
     }
-
 
     /**
      * @throws AppointmentNotFoundException
