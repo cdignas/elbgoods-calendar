@@ -1,56 +1,230 @@
 openapi: 3.0.0
 info:
   title: Elbgoods Calendar API
-  description: a simplified calendar application
-  version: 0.1.9
+  description: API for a simplified calendar application
+  version: 0.1.0
+  contact:
+    email: christiandignas@gmail.com
 
 servers:
-  - url: http://localhost/api
+  - url: /api/v1
     description: local server
 
 paths:
-  /calendar:
+  /appointments:
     get:
       summary: Returns a list of appointments
+      parameters:
+        - name: end_date
+          in: query
+          schema:
+            format: date-time
+            type: string
       responses:
         '200':
           description: A JSON array of appointments
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                $ref: '#/components/schemas/AppointmentListResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
     post:
       summary: create a new appointment
+      requestBody:
+        required: true
+        description: post request
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "App presentation with Elbgoods"
+                description:
+                  type: string
+                  example: "Presentation of calendar app with Elbgoods."
+                start_date:
+                  type: string
+                  format: date-time
+                  example: "2023-08-28 12:00:00"
+                end_date:
+                  type: string
+                  format: date-time
+                  example: "2023-08-28 18:00:00"
+                status:
+                  type: string
+                  enum: ["Requested", "Tentative", "Booked"]
+                  example: "Requested"
       responses:
-        '200':
-          description: A JSON array of appointments
+        '201':
+          description: A JSON object of a appointment
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
-    patch:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+  /appointments/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: appointment id
+        required: true
+        schema:
+          type: integer
+          default: 10
+    get:
+      summary: get a appointment
+      responses:
+        '200':
+          description: A JSON object of a appointment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentNotFound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+    put:
       summary: edit a appointment
+      requestBody:
+        required: true
+        description: post request
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "App presentation with Elbgoods"
+                description:
+                  type: string
+                  example: "Presentation of calendar app with Elbgoods."
+                start_date:
+                  type: string
+                  format: date-time
+                  example: "2023-08-28 12:00:00"
+                end_date:
+                  type: string
+                  format: date-time
+                  example: "2023-08-28 18:00:00"
+                status:
+                  type: string
+                  enum: [ "Requested", "Tentative", "Booked" ]
+                  example: "Requested"
       responses:
         '200':
-          description: A JSON array of appointments
+          description: A JSON object of a appointment
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                $ref: '#/components/schemas/AppointmentResponse'
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentNotFound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
     delete:
       summary: delete a appointment
       responses:
-        '200':
-          description: A JSON array of appointments
+        '204':
+          description: appointment deleted
+        '404':
+          description: Appointment not found
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                $ref: '#/components/schemas/AppointmentNotFound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+components:
+  schemas:
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: id
+          example: 1
+        title:
+          type: string
+          description: title
+          example: "App Presentation with Elbgoods"
+        description:
+          type: string
+          description: description
+          example: "App Presentation with Elbgoods."
+        start_date:
+          type: string
+          description: start date
+          format: date-time
+          example: "2023-08-27 06:00:00"
+        end_date:
+          type: string
+          description: start date
+          format: date-time
+          example: "2023-08-27 16:00:00"
+        status:
+          type: string
+          description: status
+          enum: [ "Requested", "Tentative", "Booked" ]
+          example: "Requested"
+    AppointmentResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Appointment'
+    AppointmentListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Appointment'
+    AppointmentNotFound:
+      type: object
+      description: Appointment not found
+      properties:
+        message:
+          type: string
+          description: error message
+          example: Appointment not found.
+    InternalServerError:
+      type: object
+      description: Internal Server Error
+      properties:
+        message:
+          type: string
+          description: error message
+          example: Internal Server Error.
