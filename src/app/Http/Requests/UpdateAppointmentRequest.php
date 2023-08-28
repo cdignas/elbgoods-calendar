@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\BookedAppointmentNotChangeable;
+use App\Rules\NoOverlappingAppointments;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateAppointmentRequest extends FormRequest
@@ -17,7 +20,7 @@ class UpdateAppointmentRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
@@ -25,8 +28,26 @@ class UpdateAppointmentRequest extends FormRequest
             'title'         => 'sometimes|string|max:255',
             'description'   => 'sometimes|nullable|string',
             'start_date'    => 'sometimes|before_or_equal:end_date|date_format:Y-m-d',
-            'end_date'      => 'sometimes|after_or_equal:start_date|date_format:Y-m-d',
-            'status'        => 'sometimes|in:Requested,Tentative,Booked'
+            'end_date'      =>
+                [
+                    'sometimes',
+                    'after_or_equal:start_date',
+                    'date_format:Y-m-d',
+                    new NoOverlappingAppointments(
+                        $this->input('start_date'),
+                        $this->input('end_date'),
+                        $this->input('status'),
+                        $this->id,
+                    )
+                ],
+            'status'        => [
+                'sometimes',
+                'in:Requested,Tentative,Booked',
+                new BookedAppointmentNotChangeable(
+                    $this->id,
+                    $this->input('status'),
+                ),
+            ]
         ];
     }
 }

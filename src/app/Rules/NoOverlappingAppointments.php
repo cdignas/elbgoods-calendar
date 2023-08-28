@@ -9,17 +9,24 @@ use Illuminate\Translation\PotentiallyTranslatedString;
 
 class NoOverlappingAppointments implements ValidationRule
 {
-    protected string $startDate;
+    protected ?string $startDate;
 
-    protected string $endDate;
+    protected ?string $endDate;
 
-    protected string $status;
+    protected ?string $status;
 
-    public function __construct(string $startDate, string $endDate, string $status)
-    {
+    protected ?int $id;
+
+    public function __construct(
+        ?string $startDate,
+        ?string $endDate,
+        ?string $status,
+        ?int $id = null
+    ) {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->status = $status;
+        $this->id = $id;
     }
 
     /**
@@ -34,11 +41,13 @@ class NoOverlappingAppointments implements ValidationRule
     }
 
     protected function checkOverlappingBookedAppointments(Closure $fail): void {
-        if ($this->status !== 'Booked') {
-            return;
-        }
-
         $booked = Appointment::where('status', 'Booked')
+            ->when(
+                $this->status === 'Booked' && isset($this->id),
+                function($query) {
+                    $query->whereNot('id', $this->id);
+                }
+            )
             ->where(function($query) {
                 $query->whereBetween('start_date', [$this->startDate, $this->endDate])
                     ->orWhereBetween('end_date', [$this->startDate, $this->endDate]);
@@ -51,12 +60,14 @@ class NoOverlappingAppointments implements ValidationRule
     }
 
     protected function checkMaxCorrespondingAppointments(Closure $fail): void {
-        if ($this->status !== 'Tentative') {
-            return;
-        }
-
         $tentative = Appointment::whereBetween('start_date', [$this->startDate, $this->endDate])
             ->orWhereBetween('end_date', [$this->startDate, $this->endDate])
+            ->when(
+                isset($this->id),
+                function($query) {
+                    $query->whereNot('id', $this->id);
+                }
+            )
             ->count();
 
         if ($tentative >= 4) {

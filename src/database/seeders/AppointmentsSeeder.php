@@ -50,7 +50,7 @@ class AppointmentsSeeder extends Seeder
                 'end_date' => Carbon::now()
                     ->addDay()
                     ->format('Y-m-d'),
-                'status' => 'Tentative',
+                'status' => 'Requested',
             ]
         );
 
@@ -64,7 +64,7 @@ class AppointmentsSeeder extends Seeder
                 'end_date' => Carbon::now()
                     ->addDay()
                     ->format('Y-m-d'),
-                'status' => 'Tentative',
+                'status' => 'Requested',
             ]
         );
 

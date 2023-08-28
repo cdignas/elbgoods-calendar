@@ -61,8 +61,6 @@ class AppointmentControllerTest  extends TestCase
             //    'data' => [
             //        'end_date' => Carbon::now()
             //            ->subDay()
-            //            ->setTime(8, 0, 0)
-            //            ->setTimezone('UTC')
             //            ->format('Y-m-d')
             //    ],
             //    'status' => Response::HTTP_UNPROCESSABLE_ENTITY,
@@ -71,11 +69,35 @@ class AppointmentControllerTest  extends TestCase
         ];
     }
 
+    public function testGet(): void
+    {
+        $response = $this->get('api/v1/appointments/1');
+        $response->assertStatus(Response::HTTP_OK);
+
+        $response = $this->get('api/v1/appointments/1000000');
+        $response->assertStatus(Response::HTTP_NOT_FOUND);
+
+        //$response = $this->get('api/v1/appointments/non-numeric');
+        //$response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    public function testDelete(): void
+    {
+        $response = $this->delete('api/v1/appointments/1');
+        $response->assertStatus(Response::HTTP_OK);
+
+        $response = $this->delete('api/v1/appointments/1000000');
+        $response->assertStatus(Response::HTTP_NOT_FOUND);
+
+        //$response = $this->delete('api/v1/appointments/non-numeric');
+        //$response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
     public static function dataTestStore(): array
     {
         return [
             // FAILED
-            'allready_booked_same_start_and_end_date' => [
+            'already_booked_same_start_and_end_date' => [
                 'data' => [
                     'title' => 'Test for Elbgoods',
                     'description' => 'Test for Elbgoods.',
@@ -84,6 +106,18 @@ class AppointmentControllerTest  extends TestCase
                     'end_date' => Carbon::now()
                         ->format('Y-m-d'),
                     'status' => 'Booked',
+                ],
+                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
+            ],
+            'already_booked_same_start_and_end_date_tentative' => [
+                'data' => [
+                    'title' => 'Test for Elbgoods',
+                    'description' => 'Test for Elbgoods.',
+                    'start_date' => Carbon::now()
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
+                        ->format('Y-m-d'),
+                    'status' => 'Tentative',
                 ],
                 'status' => Response::HTTP_UNPROCESSABLE_ENTITY
             ],
@@ -169,7 +203,7 @@ class AppointmentControllerTest  extends TestCase
                 'status' => Response::HTTP_UNPROCESSABLE_ENTITY
             ],
             // SUCCESS
-            'booked_succesfully' => [
+            'booked_successfully' => [
                 'data' => [
                     'title' => 'Test for Elbgoods',
                     'description' => 'Test for Elbgoods.',
@@ -192,6 +226,68 @@ class AppointmentControllerTest  extends TestCase
     public function testStore($data, $status): void {
         $response = $this->postJson(
             '/api/v1/appointments',
+            $data
+        );
+        $response->assertStatus($status);
+    }
+
+    public static function dataTestUpdate(): array
+    {
+        return [
+            // FAILED
+            'booked_change_state' => [
+                'data' => [
+                    'status' => 'Tentative',
+                ],
+                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
+            ],
+            'booked_change_title' => [
+                'data' => [
+                    'title' => 'Test',
+                ],
+                'status' => Response::HTTP_OK
+            ],
+            'booked_change_start_and_end_date' => [
+                'data' => [
+                    'start_date' => Carbon::now()
+                        ->addDay()
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
+                        ->addDay()
+                        ->format('Y-m-d'),
+                    'status' => 'Tentative',
+                ],
+                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
+            ],
+            'change_start_and_end_date' => [
+                'data' => [
+                    'start_date' => Carbon::now()
+                        ->addDay()
+                        ->format('Y-m-d'),
+                    'end_date' => Carbon::now()
+                        ->addDay()
+                        ->format('Y-m-d'),
+                ],
+                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
+            ],
+            'booked_change_end_date' => [
+                'data' => [
+                    'end_date' => Carbon::now()
+                        ->addDay()
+                        ->format('Y-m-d'),
+                    'status' => 'Tentative',
+                ],
+                'status' => Response::HTTP_UNPROCESSABLE_ENTITY
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider dataTestUpdate
+     */
+    public function testUpdate($data, $status): void {
+        $response = $this->putJson(
+            '/api/v1/appointments/1',
             $data
         );
         $response->assertStatus($status);

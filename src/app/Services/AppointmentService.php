@@ -34,9 +34,12 @@ class AppointmentService
     /**
      * @throws AppointmentNotFoundException
      */
-    public function update(int $id, array $params): bool
+    public function update(int $id, array $params): ?Appointment
     {
-        return $this->appointmentRepository->getById($id)->update($params);
+        $appointment = $this->appointmentRepository->getById($id);
+        $appointment->update($params);
+
+        return $appointment;
     }
 
     /**
