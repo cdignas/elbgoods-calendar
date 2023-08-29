@@ -1,3 +1,40 @@
+# Elbgoods Calendar API
+
+A simplified calendar application for a larger platform. Link to complete description [README.md](src/README.md)
+
+### Build App
+To get started, make sure you have [Docker installed](https://docs.docker.com/docker-for-mac/install/) on your system, and then clone this repository.
+
+Next, navigate in your terminal to the directory you cloned this, and spin up the containers for the web server by running 
+
+`docker-compose up -d --build app`.
+
+navigate to src folder copy `.env.example` and rename to `.env`
+
+### Start App
+
+- `docker-compose run --rm composer update`
+- `docker-compose run --rm npm install`
+- `docker-compose run --rm npm run dev`
+- `docker-compose run --rm artisan migrate:fresh --seed`
+
+### Swagger Doc
+
+Link to [Swagger Doc](http://localhost/docs/swagger) for Testing Endpoints in Frontend
+
+### Unit Tests
+
+`docker-compose run --rm artisan test --filter=AppointmentControllerTest`
+
+
+
+
+
+
+
+
+
+
 # docker-compose-laravel
 A pretty simplified Docker Compose workflow that sets up a LEMP network of containers for local Laravel development. You can view the full article that inspired this repo [here](https://dev.to/aschmelyun/the-beauty-of-docker-for-local-laravel-development-13c0).
 
