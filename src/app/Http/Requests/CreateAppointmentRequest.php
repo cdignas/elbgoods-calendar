@@ -6,6 +6,11 @@ use App\Rules\NoOverlappingAppointments;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Request validation for create an appointment.
+ *
+ * @author Christian Dignas <christian.dignas@gmail.com>
+ */
 class CreateAppointmentRequest extends FormRequest
 {
     /**

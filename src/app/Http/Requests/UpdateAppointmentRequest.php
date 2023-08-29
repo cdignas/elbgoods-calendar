@@ -7,6 +7,11 @@ use App\Rules\NoOverlappingAppointments;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Request validation for updating existing appointment.
+ *
+ * @author Christian Dignas <christian.dignas@gmail.com>
+ */
 class UpdateAppointmentRequest extends FormRequest
 {
     /**
@@ -25,13 +30,12 @@ class UpdateAppointmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'         => 'sometimes|string|max:255',
-            'description'   => 'sometimes|nullable|string',
-            'start_date'    => 'sometimes|before_or_equal:end_date|date_format:Y-m-d',
-            'end_date'      =>
+            'title' => 'sometimes|string|max:255',
+            'description' => 'sometimes|nullable|string',
+            'start_date' =>
                 [
                     'sometimes',
-                    'after_or_equal:start_date',
+                    'before_or_equal:end_date',
                     'date_format:Y-m-d',
                     new NoOverlappingAppointments(
                         $this->input('start_date'),
@@ -40,7 +44,13 @@ class UpdateAppointmentRequest extends FormRequest
                         $this->id,
                     )
                 ],
-            'status'        => [
+            'end_date' =>
+                [
+                    'sometimes',
+                    'after_or_equal:start_date',
+                    'date_format:Y-m-d',
+                ],
+            'status' => [
                 'sometimes',
                 'in:Requested,Tentative,Booked',
                 new BookedAppointmentNotChangeable(

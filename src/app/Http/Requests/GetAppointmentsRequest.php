@@ -5,6 +5,11 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Request validation for get appointments.
+ *
+ * @author Christian Dignas <christian.dignas@gmail.com>
+ */
 class GetAppointmentsRequest extends FormRequest
 {
     /**

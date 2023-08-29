@@ -7,14 +7,44 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;
 
+/**
+ * Validation rule for no overlapping appointments rule.
+ *
+ * @author Christian Dignas <christian.dignas@gmail.com>
+ */
 class NoOverlappingAppointments implements ValidationRule
 {
+    /**
+     * Maximum corresponding appointments.
+     */
+    protected const MAXIMUM_CORRESPONDING_APPOINTMENTS = 4;
+
+    /**
+     * Start date of appointment
+     *
+     * @var string|null
+     */
     protected ?string $startDate;
 
+    /**
+     * End date of appointment
+     *
+     * @var string|null
+     */
     protected ?string $endDate;
 
+    /**
+     * Appointment status
+     *
+     * @var string|null
+     */
     protected ?string $status;
 
+    /**
+     * Appointment id
+     *
+     * @var int|null
+     */
     protected ?int $id;
 
     public function __construct(
@@ -36,22 +66,31 @@ class NoOverlappingAppointments implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        if (!$this->checkVariables()) {
+            return;
+        }
+
         $this->checkOverlappingBookedAppointments($fail);
         $this->checkMaxCorrespondingAppointments($fail);
     }
 
-    protected function checkOverlappingBookedAppointments(Closure $fail): void {
-        $booked = Appointment::where('status', 'Booked')
+    /**
+     * Check if there are any overlapping appointments.
+     *
+     * @param Closure $fail
+     *
+     * @return void
+     */
+    protected function checkOverlappingBookedAppointments(Closure $fail): void
+    {
+        $booked = Appointment::inDateRangeWithoutOverlapping($this->startDate, $this->endDate)
+            ->where('status', 'Booked')
             ->when(
                 $this->status === 'Booked' && isset($this->id),
                 function($query) {
                     $query->whereNot('id', $this->id);
                 }
             )
-            ->where(function($query) {
-                $query->whereBetween('start_date', [$this->startDate, $this->endDate])
-                    ->orWhereBetween('end_date', [$this->startDate, $this->endDate]);
-            })
             ->count();
 
         if ($booked > 0) {
@@ -59,9 +98,16 @@ class NoOverlappingAppointments implements ValidationRule
         }
     }
 
-    protected function checkMaxCorrespondingAppointments(Closure $fail): void {
-        $tentative = Appointment::whereBetween('start_date', [$this->startDate, $this->endDate])
-            ->orWhereBetween('end_date', [$this->startDate, $this->endDate])
+    /**
+     * Check if maximum of corresponding appointments are available.
+     *
+     * @param Closure $fail
+     *
+     * @return void
+     */
+    protected function checkMaxCorrespondingAppointments(Closure $fail): void
+    {
+        $tentative = Appointment::inDateRangeWithoutOverlapping($this->startDate, $this->endDate)
             ->when(
                 isset($this->id),
                 function($query) {
@@ -70,8 +116,45 @@ class NoOverlappingAppointments implements ValidationRule
             )
             ->count();
 
-        if ($tentative >= 4) {
-            $fail('There are more than 4 overlapping appointments.');
+        if ($tentative >= self::MAXIMUM_CORRESPONDING_APPOINTMENTS) {
+            $fail(
+                sprintf(
+                    'There are more than %d overlapping appointments.',
+                    self::MAXIMUM_CORRESPONDING_APPOINTMENTS
+                )
+            );
         }
+    }
+
+    /**
+     * Check if all instance variables are set, otherwise get it from model, and return true.
+     * If model not exists return false.
+     *
+     * @return bool
+     */
+    protected function checkVariables(): bool
+    {
+        if ($this->startDate && $this->endDate && $this->status) {
+            return true;
+        }
+
+        $appointment = Appointment::find($this->id);
+        if (!$appointment) {
+            return false;
+        }
+
+        if (!$this->startDate) {
+            $this->startDate = $appointment->start_date;
+        }
+
+        if (!$this->endDate) {
+            $this->endDate = $appointment->end_date;
+        }
+
+        if (!$this->status) {
+            $this->status = $appointment->status;
+        }
+
+        return true;
     }
 }

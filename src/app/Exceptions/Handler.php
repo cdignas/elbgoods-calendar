@@ -3,12 +3,15 @@
 namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response as FoundationResponse;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -44,25 +47,36 @@ class Handler extends ExceptionHandler
     /**
      * Render Exception for API.
      *
-     * @param Exception $exception
+     * @param Exception|Throwable $exception
      *
      * @return JsonResponse
      */
-    protected function renderExceptionForApi(Exception $exception): JsonResponse
+    protected function renderExceptionForApi(Exception|Throwable $exception): JsonResponse
     {
+        $message = $exception->getMessage();
         $statusCode = FoundationResponse::HTTP_INTERNAL_SERVER_ERROR;
-        if (method_exists($exception, 'getStatusCode')) {
+
+        if ($exception instanceof HttpExceptionInterface) {
+            // if exception has getter for status code, otherwise 500 (internal server error)
             $statusCode = $exception->getStatusCode();
         }
 
         if ($exception instanceof ValidationException) {
+            // if validation exception then status code 422 (unprocessable entity error)
             $statusCode = FoundationResponse::HTTP_UNPROCESSABLE_ENTITY;
         }
 
+        if ($exception instanceof ModelNotFoundException) {
+            $message = 'Model Not Found';
+        }
+
+        if ($exception instanceof QueryException) {
+            // if query exception then show only default message for security reasons
+            $message = 'Internal Server Error';
+        }
+
         return response()->json(
-            [
-                'message' => $exception->getMessage()
-            ],
+            ['message' => $message],
             $statusCode
         );
     }
